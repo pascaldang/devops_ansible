@@ -2,9 +2,6 @@
 - hosts: SSH_Servers
   remote_user: root
   tasks:
-    - name: Add Node Source
-      shell: curl -sL https://deb.nodesource.com/setup_8.x | bash -
-
     - name: Install Packages
       apt: name={{ item }} state=latest update_cache=true
       with_items:
@@ -13,7 +10,12 @@
         - git
         - curl
         - sudo
-        - nodejs
+
+    - name: Add Node Source
+      shell: curl -sL https://deb.nodesource.com/setup_8.x | bash -
+
+    - name: Install NodeJS
+      apt: name=nodejs state=latest update_cache=true
 
     - name: Start Nginx
       shell: service nginx start
