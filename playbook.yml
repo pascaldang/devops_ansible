@@ -1,0 +1,45 @@
+---
+- hosts: SSH_Servers
+  remote_user: root
+  tasks:
+    - name: Add Node Source
+      shell: curl -sL https://deb.nodesource.com/setup_8.x | bash -
+
+    - name: Install Packages
+      apt: name={{ item }} state=latest update_cache=true
+      with_items:
+        - build-essential
+        - nginx
+        - git
+        - curl
+        - sudo
+        - nodejs
+
+    - name: Start Nginx
+      shell: service nginx start
+
+    - name: Create Directory
+      file: path=/var/www/my-node-project state=directory
+
+    - name: Clone Repo Git
+      git: repo=https://git.mrzee.fr/student/my-node-project.git dest=/var/www/my-node-project force=yes
+
+    - name: Install PM2
+      npm: name=pm2 global=yes production=yes
+
+    - name: NPM Install
+      npm: path=/var/www/my-node-project/myapp
+
+    - name: Start App with PM2
+      command: pm2 start ./bin/www --name node-app chdir=/var/www/my-node-project/myapp/
+
+    - name: Remove default file
+      file: 
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+
+    - name: Copy VHost
+      command: mv /var/www/my-node-project/vhost /etc/nginx/sites-enabled
+
+    - name: Restart Nginx
+      shell: service nginx restart
